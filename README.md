@@ -1,8 +1,6 @@
-# cw3359.github.io
-# Proposal_Group K
-Title: NYC Crime Overview
-Group: K
-Members: Chen Wang (cw3359@columbia.edu), Meilin Yuan (my2722@columbia.edu), Zhuohan Wang (zw2818@columbia.edu), Sifan (Carol) Liu (sl4974@columbia.edu)
+# Title: NYC Crime Overview
+# Group: K
+## Members: Chen Wang (cw3359@columbia.edu), Meilin Yuan (my2722@columbia.edu), Zhuohan Wang (zw2818@columbia.edu), Sifan (Carol) Liu (sl4974@columbia.edu)
 Abstract
 The crime situation deserves public attention because it can directly affect people's safety. In this project, we will explore as deeply as we can the changes in the crime situation in the five boroughs of New York City (New York, Bronx, Queens, Brooklyn, and Staten Island). It's an efficient way to reflect the changes in the level of Safety in New York, even the security situation in the social security aspect as time goes on. We plan to collect the data on each borough's criminal cases and the odds of different types of crimes occurring in each county to get a more accurate result for this research. After the process of visualization, we will conclude the following questions:
 •	The most dangerous and safest borough in New York City from multiple perspectives.
