@@ -9,7 +9,7 @@ Zhuohan Wang
 ([zw2818\@columbia.edu](mailto:zw2818@columbia.edu){.email}), Sifan
 (Carol) Liu ([sl4974\@columbia.edu](mailto:sl4974@columbia.edu){.email})
 
-**Abstract:**
+**Abstract**
 
 The crime situation deserves public attention because it can directly
 affect people's safety. In this project, we will explore as deeply as we
@@ -65,7 +65,7 @@ we will conclude the following questions:
 
 **Data Description: There are four datasets we used in this project.**
 
--   Dataset 1:
+-   **Dataset 1:**
     <https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Historic/qgea-i56i>
 
     -   This dataset is from NYC Open Data with more than 7 million
@@ -76,7 +76,7 @@ we will conclude the following questions:
         including County, Agency, Year, crime type of each case, as well
         as the coordinate of each case of crime.
 
--   Dataset 2:
+-   **Dataset 2:**
     <https://www.kaggle.com/new-york-state/new-york-state-index-crimes>
 
     -   The dataset is from kaggle.com and the file that we are going to
@@ -87,7 +87,7 @@ we will conclude the following questions:
         variables including County, Agency, Year, as well as the count
         of each type of crime.
 
--   Dataset 3:
+-   **Dataset 3:**
     <https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Current-Year-To-Date-/5uac-w243>
 
     -   This dataset is from NYC Open Data
@@ -97,7 +97,7 @@ we will conclude the following questions:
         including County, Agency, Year, as well as the coordinate of
         each case of crime.
 
--   Dataset 4:
+-   **Dataset 4:**
     <https://data.cityofnewyork.us/City-Government/Projected-Population-2010-2040-Summary/ph5g-sr3v>
 
     -   This Dataset is from NYC Open Data.
