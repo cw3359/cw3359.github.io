@@ -1,5 +1,5 @@
 # cw3359.github.io
-Proposal_Group K
+# Proposal_Group K
 Title: NYC Crime Overview
 Group: K
 Members: Chen Wang (cw3359@columbia.edu), Meilin Yuan (my2722@columbia.edu), Zhuohan Wang (zw2818@columbia.edu), Sifan (Carol) Liu (sl4974@columbia.edu)
