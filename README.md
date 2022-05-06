@@ -2,7 +2,9 @@
 
 **Group:** K
 
-**Members:** Chen Wang
+**Members** 
+
+Chen Wang
 ([cw3359\@columbia.edu](mailto:cw3359@columbia.edu)), Meilin
 Yuan ([my2722\@columbia.edu](mailto:my2722@columbia.edu)),
 Zhuohan Wang
