@@ -31,13 +31,13 @@ we will conclude the following questions:
 
     -   Adjusted the level of danger by population and area.
 
-    -   Total number of certain types of crime
+    -   Total number of certain types of crime.
 
-        -   Rape
+        -   Rape.
 
-        -   Robbery
+        -   Robbery.
 
-        -   Murder
+        -   Murder.
 
 -   Does the outbreak of COVID-19 make the crime situation in New York
     City improve?
@@ -48,7 +48,7 @@ we will conclude the following questions:
     -   Which area has the highest and lowest density of crime situation
         in New York City?
 
-        -   Harassment
+        -   Harassment.
 
 -   As time goes by, which type of crime has been most effectively
     improved and which has improved the least?
@@ -80,7 +80,7 @@ we will conclude the following questions:
     <https://www.kaggle.com/new-york-state/new-york-state-index-crimes>
 
     -   The dataset is from kaggle.com and the file that we are going to
-        use is "index crimes by county and agency beginning 1990.csv"
+        use is "index crimes by county and agency beginning 1990.csv".
 
     -   This dataset shows the detailed information of the crime
         situation in New York from 1990 to 2018. It contains multiple
@@ -90,7 +90,7 @@ we will conclude the following questions:
 -   **Dataset 3:**
     <https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Current-Year-To-Date-/5uac-w243>
 
-    -   This dataset is from NYC Open Data
+    -   This dataset is from NYC Open Data.
 
     -   This dataset shows the detailed information of the crime
         situation in New York up to 2021. It contains multiple variables
@@ -111,7 +111,7 @@ we will conclude the following questions:
 
     -   We would use either rmdformat output as a single interactive
         platform to publish graphs onto a newly built, partially
-        interactive website
+        interactive website.
 
 -   **Maps**
 
