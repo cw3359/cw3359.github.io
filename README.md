@@ -3,11 +3,11 @@
 **Group:** K
 
 **Members:** Chen Wang
-([cw3359\@columbia.edu](mailto:cw3359@columbia.edu){.email}), Meilin
-Yuan ([my2722\@columbia.edu](mailto:my2722@columbia.edu){.email}),
+([cw3359\@columbia.edu](mailto:cw3359@columbia.edu)), Meilin
+Yuan ([my2722\@columbia.edu](mailto:my2722@columbia.edu)),
 Zhuohan Wang
-([zw2818\@columbia.edu](mailto:zw2818@columbia.edu){.email}), Sifan
-(Carol) Liu ([sl4974\@columbia.edu](mailto:sl4974@columbia.edu){.email})
+([zw2818\@columbia.edu](mailto:zw2818@columbia.edu)), Sifan
+(Carol) Liu ([sl4974\@columbia.edu](mailto:sl4974@columbia.edu))
 
 **Abstract**
 
