@@ -578,7 +578,6 @@ plot_3 <- leaflet(data_plot_3) %>%
 
 ```{r,warning=FALSE}
   # plot 16 (static heat map) -- Meilin Yuan: crime densities for 2019 and 2021
-register_google(key = "AIzaSyBLxL28NCpzuPXVbeyjYCHRDbrMji4qNow")
   #Create map
 map_NYC_2 <- get_map("New York City",
                             zoom=11,
