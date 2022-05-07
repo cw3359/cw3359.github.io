@@ -1,0 +1,1009 @@
+---
+title: "NYC Crime Overview"
+author: "Data Visualization Group K: Chen Wang, Meilin Yuan, Zhuohan Wang, Sifan (Carol) Liu"
+output:
+  rmdformats::downcute
+---
+<style type="text/css">
+  body{
+  font-size: 12pt;
+}
+</style>
+
+```{r setup, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+library("knitr")
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning = FALSE)
+```
+
+```{r,warning=FALSE}
+  #Loading necessary libraries
+library(dplyr)
+library(plyr)
+# environment(arrange)  
+library(tidyverse)
+library(readr)
+library(formattable)
+library(ggplot2)
+library(reshape)
+library(plotly)
+library(RColorBrewer)
+library(tidyr)
+library(ggmap)
+library(leaflet)
+library(leafsync)
+library(leafletCN)
+library(grid)
+library(reshape)
+library(gridExtra)
+library(rcartocolor)
+```
+
+
+```{r}
+#Datasets
+  #Land area reference: https://en.wikipedia.org/wiki/Boroughs_of_New_York_City
+  
+  #Chen Wang's data
+data_big_crime <- read.csv('data/NYPD_Complaint_Data_Historic.csv')
+data_kaggle <- read.csv('data/index-crimes-by-county-and-agency-beginning-1990.csv')
+  
+  #Meilin Yuan's data
+df_current_old <-read.csv('data/NYPD_Complaint_Data_Historic.csv')
+df_historic <- read.csv('data/index-crimes-by-county-and-agency-beginning-1990.csv')
+df_population <- read.csv('data/Projected_Population_2010-2040_-_Summary.csv')
+df_current <- read.csv('data/NYPD_Complaint_Data_Current__Year_To_Date_.csv')
+  
+  #Carol Liu's data
+kaggle_crime_rate <- read.csv('data/index-crimes-by-county-and-agency-beginning-1990.csv')
+raw <- read.csv('data/NYPD_Complaint_Data_Current__Year_To_Date_.csv')
+historic <-read.csv('data/NYPD_Complaint_Data_Historic.csv')
+  
+ #Zhuohan Wang's data
+crime2<-read.csv('data/index-crimes-by-county-and-agency-beginning-1990.csv')
+```
+
+
+```{r,warning=FALSE}
+  # plot 1 (interactive line chart) -- Chen Wang: Changes in Total Crime Cases from 2009 to 2018
+  
+  #Data cleaning for the first plot
+  #Boroughs of New York City
+  #The Bronx (Bronx County)
+  #Brooklyn (Kings County)
+  #Manhattan (New York County)
+  #Queens (Queens County)
+  #Staten Island (Richmond County)
+data_kaggle <- data_kaggle %>%
+  mutate(Borough = case_when(County == "New York" ~ "Manhattan", County == "Kings" ~ "Brooklyn", County == "Queens" ~ "Queens", County == "Bronx" ~ "Bronx", County == "Richmond" ~ "Staten Island" ))
+  #data cleaning for kaggle data
+data_10years <- data_kaggle %>%
+  #select necessary variables
+  select(County, Borough,Year, Murder, Rape, Robbery, Burglary, Aggravated.Assault, Violent.Total, Burglary, Larceny,Motor.Vehicle.Theft, Property.Total, Index.Total) %>%
+  #select the crimes from 2009 to 2018 (ten years)
+  filter(Year > "2008")
+data_10years <- filter(data_10years, County %in% c("New York","Kings","Queens","Bronx","Richmond"))
+```
+
+```{r,warning=FALSE}
+  #Prepare data for 1st plot
+data_plot_1 <- data_10years %>%
+  select(Borough, Year, Index.Total) %>%
+  group_by(Borough)
+data_plot_1 <- as.data.frame(data_plot_1)
+# Meilin added a dataframe to adjust the label name
+data_plot_1a <- data_plot_1
+names(data_plot_1a)[3] <- "Crime_Count"
+```
+
+```{r,warning=FALSE}
+  #Creating 1st plot
+# color pal: scale_color_manual(values=c("dark blue","#908660","#ffd166","#ad4b30","#f4cca6"))
+plot_1 <- ggplot(data_plot_1a, aes(x = Year, y = Crime_Count, color = Borough)) +   geom_line() + 
+  geom_point() + 
+  labs(title="Overall Crime in NYC for the Past 10 Years",y="Crime Count") + 
+  scale_x_continuous(breaks = seq(2009,2018,1)) +
+  scale_y_continuous(breaks = seq(10000,70000,10000)) +
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))+
+  scale_color_manual(values=c("dark blue","#908660","#ffd166","#ad4b30","#f4cca6"))
+plot_1 <- plot_1 %>%
+  ggplotly(tooltip = c("x","y","text"))
+```
+
+
+```{r,warning=FALSE}
+  # plot 2 (Bar Chart)-- Meilin Yuan: Yearly Crime Growth Rate 2009-2021
+
+  #Data processing for 2nd plot
+df_current_map <-df_current
+df_current_old_map <-df_current_old
+# convert the date of crime to year
+df_current_map <- df_current_map %>% mutate(Year_Occured=substring(CMPLNT_FR_DT,7,10))
+df_current_old_map <- df_current_old_map %>% mutate(Year_Occured=substring(CMPLNT_FR_DT,7,10))
+df_current_2021 <- df_current_map %>% filter(Year_Occured=="2021")
+df_current_old_2019 <- df_current_old_map %>% filter(Year_Occured=="2019")
+
+  #Divide up by year
+df_10year_2021 <- df_current_2021
+df_10year_2020 <- df_current_old_map %>% filter(Year_Occured=="2020")
+df_10year_2019 <-df_current_old_2019
+df_10year_2018 <- df_10year_2018 <- df_current_old_map %>% filter(Year_Occured=="2018")
+df_10year_2017 <- df_current_old_map %>% filter(Year_Occured=="2017")
+df_10year_2016 <- df_current_old_map %>% filter(Year_Occured=="2016")
+df_10year_2015 <- df_current_old_map %>% filter(Year_Occured=="2015")
+df_10year_2014 <- df_current_old_map %>% filter(Year_Occured=="2014")
+df_10year_2013 <- df_current_old_map %>% filter(Year_Occured=="2013")
+df_10year_2012 <- df_current_old_map %>% filter(Year_Occured=="2012")
+df_10year_2011 <- df_current_old_map %>% filter(Year_Occured=="2011")
+df_10year_2010 <- df_current_old_map %>% filter(Year_Occured=="2010")
+df_10year_2009 <- df_current_old_map %>% filter(Year_Occured=="2009")
+df_10year_2008 <- df_current_old_map %>% filter(Year_Occured=="2008")
+  #Get the difference
+overall_2009 <- nrow(df_10year_2009)-nrow(df_10year_2008)
+overall_2010 <- nrow(df_10year_2010)-nrow(df_10year_2009)
+overall_2011 <- nrow(df_10year_2011)-nrow(df_10year_2010)
+overall_2012 <- nrow(df_10year_2012)-nrow(df_10year_2011)
+overall_2013 <- nrow(df_10year_2013)-nrow(df_10year_2012)
+overall_2014 <- nrow(df_10year_2014)-nrow(df_10year_2013)
+overall_2015 <- nrow(df_10year_2015)-nrow(df_10year_2014)
+overall_2016 <- nrow(df_10year_2016)-nrow(df_10year_2015)
+overall_2017 <- nrow(df_10year_2017)-nrow(df_10year_2016)
+overall_2018 <- nrow(df_10year_2018)-nrow(df_10year_2017)
+overall_2019 <- nrow(df_10year_2019)-nrow(df_10year_2018)
+overall_2020 <- nrow(df_10year_2020)-nrow(df_10year_2019)
+overall_2021 <- nrow(df_10year_2021)-nrow(df_10year_2020)
+Year <-c("2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021")
+Change <-c(overall_2009,overall_2010,overall_2011,overall_2012,overall_2013, overall_2014,overall_2015,overall_2016,overall_2017,overall_2018,overall_2019,overall_2020,overall_2021)
+df_past_overall <- data.frame(Year, Change)
+df_past_overall$Trend <- ifelse(df_past_overall$Change >=0, "Increase", "Decrease")
+```
+
+```{r,warning=FALSE}
+  #Create bar graph
+bar_10year_change <- ggplot(df_past_overall, aes(x=Year,y=Change,group=1,fill=Trend)) +
+  scale_fill_manual(values=c("#06d6a0", "#ef476f")) +
+  geom_bar(position="dodge", stat = "identity") + 
+  labs(y="Change in Number of Total Crime Cases ",title="Changes in Number of Crime Cases Each Year in NYC",subtitle="Each Year Compared to Its Previous Year, 2009-2021") +
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))
+
+```
+
+
+```{r,warning=FALSE}
+  # plot 3 (Bump Chart) -- Meilin Yuan: Ranking of Most Dangerous Borough in NYC
+  #Get unadjusted rank of total crime cases by boroughs from 2009-2018
+NYC_boros <- c("New York","Bronx","Kings","Queens","Richmond")
+df_select_year <- df_historic %>% 
+  select(Index.Total,Year,County) %>% 
+  filter(County %in% NYC_boros, Year>=2009 & Year<=2018) %>% 
+  dplyr::group_by(County) %>% 
+  dplyr::summarise(Total_Crime_Case=sum(Index.Total))
+
+df_rank_unadjust <- df_select_year[order(df_select_year$Total_Crime_Case, decreasing = TRUE), ]
+df_rank_unadjust <- df_rank_unadjust %>% dplyr::mutate(Unadjust_Rank = row_number())
+
+  #Get rank adjusted by population by boroughs
+pop_manhattan <- (df_population$X2010[4]+df_population$X2010[4])/2
+pop_bronx <- (df_population$X2010[2]+df_population$X2010[2])/2
+pop_brooklyn <- (df_population$X2010[3]+df_population$X2010[3])/2
+pop_queens <- (df_population$X2010[5]+df_population$X2010[5])/2
+pop_si <- (df_population$X2010[6]+df_population$X2010[6])/2
+
+#Order:Kings (Brooklyn),New York (Manhattan), Queens, Bronx, Richmond (Staten Island)
+df_rank_unadjust$Population <-c(pop_brooklyn, pop_manhattan, pop_queens, pop_bronx, pop_si)
+
+df_rank_adjustbypop <- df_rank_unadjust %>% dplyr::mutate(AdjustByPop=Total_Crime_Case/Population)
+df_rank_adjustbypop <- df_rank_adjustbypop[order(df_rank_adjustbypop$AdjustByPop, decreasing = TRUE), ]
+df_rank_adjustbypop <- df_rank_adjustbypop %>% dplyr::mutate(AdjustByPop_Rank = row_number())
+
+#Get land area for each borough
+area_ny <- 22.7
+area_bronx <- 42.2
+area_kings <- 69.4
+area_queens <- 108.7
+area_richmond <- 57.5
+
+df_rank_adjustbypop$Area <-c(area_ny, area_bronx, area_kings, area_queens, area_richmond)
+
+df_rank_adjustbyarea <- df_rank_adjustbypop %>% mutate(AdjustByArea=Total_Crime_Case/Area)
+df_rank_adjustbyarea <- df_rank_adjustbyarea[order(df_rank_adjustbyarea$AdjustByArea, decreasing = TRUE), ]
+df_rank_adjustbyarea <- df_rank_adjustbyarea %>% dplyr::mutate(AdjustByArea_Rank = row_number())
+df_rank_final <- df_rank_adjustbyarea[c(1,3,6,9)]
+colnames(df_rank_final)[1] <- "Borough"
+df_rank_final$Borough[1] <- "Manhattan"
+df_rank_final$Borough[3] <- "Brooklyn"
+df_rank_final$Borough[5] <- "Staten Island"
+
+colnames(df_rank_final)[2] <- "Raw counts"
+colnames(df_rank_final)[3] <- "Population-adjusted counts"
+colnames(df_rank_final)[4] <- "Area-adjusted counts"
+
+  #Convert to long format
+df_rank_final_long <- reshape2::melt(df_rank_final, id.vars=c("Borough"),variable.name="AdjustmentType", value.name="Rank")
+```
+
+```{r,warning=FALSE}
+  #Creating bump plot
+bump_plot <- ggplot(df_rank_final_long, aes(x = AdjustmentType, y = Rank, group = Borough)) +
+  geom_line(aes(color = Borough), size = 1) +
+  geom_point(aes(color = Borough), size = 3) +
+  scale_y_reverse(breaks = 1:nrow(df_rank_final_long)) + 
+  scale_color_manual(values=c("dark blue","#908660","#ffd166","#ad4b30","#f4cca6"))+
+  labs(x = "Adjustment Type",
+       y = "Rank",
+       title = "The Most Dangerous Borough in NYC",
+       subtitle = "Ranked by the Total Number of Major Crime Cases for Year 2009-2018")+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))
+
+```
+
+```{r,warning=FALSE}
+  # plot 4 (interactive map) -- Carol Liu: Percent of murder(murder/violent total), Rape, Aggravated Assault, happened in each county in year 2018, last year before covid
+
+  #Data processing
+NY_crime_18 <- kaggle_crime_rate %>%
+  filter(Year == 2018)%>%
+  filter(Region == "New York City")%>%
+  mutate(Murder_Rate = Murder/Violent.Total*100, 
+         Rape_Rate = Rape/Violent.Total*100,
+         Assualt_Rate = Aggravated.Assault/Violent.Total*100)
+
+  #Bronx, Kings, New York, Queens, Richmond
+NY_crime_18$latitude <- c(40.8447819, 40.6501038, 40.7834345, 40.742054, 40.5834379)
+NY_crime_18$borough <- c('Bronx', 'Brooklyn', 'Manhattan','Queens',  'Staten Island')
+NY_crime_18$longitude <- c(-73.8648268, -73.9495823, -73.9662495, -73.769417, -74.1495875)
+NY_crime_18[,'Murder_Rate']=round(NY_crime_18[,'Murder_Rate'],2)
+NY_crime_18[,'Rape_Rate']=round(NY_crime_18[,'Rape_Rate'],2)
+NY_crime_18[,'Assualt_Rate']=round(NY_crime_18[,'Assualt_Rate'],2)
+```
+
+```{r,warning=FALSE}
+  #Creating plot
+  #Circle area indicated the severeness of murder in that boroughs
+plot_before_covid <- leaflet() %>%
+  setView(lat = 40.7829, lng = -73.9654, zoom = 11) %>% 
+  addTiles()%>%
+  addCircles(data = NY_crime_18, lng = ~longitude, lat = ~latitude, weight = 1,
+    radius = ~sqrt(Murder) * 350,popup = ~paste(
+               paste('<b>',borough,'Borough 2018'),
+               paste('<b>', 'Number of Murder:', Murder,'people'), 
+               paste('<b>', 'Percent of Murder in Violent Crimes:', Murder_Rate, '%'), 
+               paste('<b>',  'Percent of Rape in Violent Crimes:', Rape_Rate, '%'),
+               paste('<b>', 'Percent of Aggravated Assault in Violent Crimes :',Assualt_Rate, '%'),
+               sep = '<br/>'),) 
+
+```
+
+
+```{r,warning=FALSE}
+  # plot 5 (multiple-bar chart) -- Zhuohan Wang: Total number of murder by borough(2009-2018)
+  
+  #Data processing
+crime3 <- crime2 %>%
+  mutate(Borough = case_when(County == "New York" ~ "Manhattan", County == "Kings" ~ "Brooklyn", County == "Queens" ~ "Queens", County == "Bronx" ~ "Bronx", County == "Richmond" ~ "Staten Island" ))
+  #data cleaning for kaggle data
+crime4 <- crime3 %>%
+  #select necessary variables
+  select(County, Borough,Year, Murder, Rape, Robbery, Burglary, Aggravated.Assault, Violent.Total, Burglary, Larceny,Motor.Vehicle.Theft, Property.Total, Index.Total) %>%
+  #select the crimes from 2009 to 2018 (ten years)
+  filter(Year > "2008")
+data2<- filter(crime4, County %in% c("New York","Kings","Queens","Bronx","Richmond"))
+
+df<- data2%>%
+  dplyr::group_by(Year, Borough, Murder)%>%
+  dplyr::summarise(Total = sum(Murder),.groups = 'drop')
+df$Year= as.character(df$Year)
+
+  #Creating plot
+p1= ggplot(df, aes(fill=Borough, y=Murder, x=Year)) +
+  geom_bar(position="dodge", stat = "identity")+
+  labs(title = 'Total Number of Murders in NYC',subtitle = "By Borough, 2009-2018",y="Murder Count")+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))+
+  scale_fill_manual(values=c("dark blue","#908660","#ffd166","#ad4b30","#f4cca6"))
+```
+
+
+```{r,warning=FALSE}
+  # plot 6 (multiple-bar chart) -- Zhuohan Wang: Total number of rapes by borough(2009-2018)
+  
+  #Data processing
+df2<- data2%>%
+  dplyr::group_by(Year, Borough, Rape)%>%
+  dplyr::summarise(Total = sum(Rape),.groups = 'drop')
+df2$Year= as.character(df2$Year)
+
+  #Creating plot
+p3= ggplot(df2, aes(fill=Borough, y=Rape, x=Year)) +
+  geom_bar(position="dodge", stat = "identity") +
+  labs(title = 'Total Number of Rapes in NYC',subtitle = "By Borough, 2009-2018",y="Rape Count")+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))+
+  scale_fill_manual(values=c("dark blue","#908660","#ffd166","#ad4b30","#f4cca6"))
+
+```
+
+
+```{r,warning=FALSE}
+  # plot 7 (multiple-bar chart) -- Zhuohan Wang: Total number of robberies by borough(2009-2018)
+  
+  #Data processing
+df3<- data2%>%
+  dplyr::group_by(Year, Borough, Robbery)%>%
+  dplyr::summarise(Total = sum(Robbery),.groups = 'drop')
+df3$Year= as.character(df3$Year)
+
+  #Creating plot
+p4 = ggplot(df3, aes(fill=Borough, y=Robbery, x=Year)) +
+  geom_bar(position="dodge", stat = "identity") +
+  labs(title = 'Total Number of Robberies in NYC',subtitle = "By Borough, 2009-2018",y="Robbery Count") +
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))+
+  scale_fill_manual(values=c("dark blue","#908660","#ffd166","#ad4b30","#f4cca6"))
+
+```
+
+
+```{r,warning=FALSE}
+  # plot 8 (multiple flipped-bar graph) -- Carol Liu: victim race year trend (Bronx)
+
+  #Data processing
+  #Filter the data
+county <- historic %>%
+  filter(BORO_NM == c("BRONX", "MANHATTAN", "BROOKLYN", "STATEN ISLAND", "QUEENS" ))
+  #Omit NAs or empty in date&victim rate, omit unknown category
+county <- county[!(is.na(county$CMPLNT_FR_DT) | county$CMPLNT_FR_DT==""), ]
+county <- county[!(is.na(county$VIC_RACE)| county$VIC_RACE=="UNKNOWN" | county$VIC_RACE==""), ]
+  #Extract year from CMPLNT_FR_DT
+county$year = str_sub(county$CMPLNT_FR_DT,-4)
+  #filter the completed cases
+county_18 <- county%>%
+  filter(CRM_ATPT_CPTD_CD == "COMPLETED")%>%
+  filter(as.numeric(year) > "2008"& as.numeric(year) < "2019")%>%
+  filter(year != c("1021", "1019"))
+county_18$victim <- 1
+ #group by
+county_count<- county_18 %>%
+  dplyr::group_by(BORO_NM, year,VIC_RACE)%>%
+  dplyr::summarize(Victim_count= sum(victim))
+
+vic_count <- county_18%>%
+  dplyr::group_by(year,VIC_RACE)%>%
+  dplyr::summarize(Victim_count= sum(victim))
+
+vic_count_BRONX <- county_count %>%
+  filter(BORO_NM == 'BRONX')
+
+vic_count_BROOKLYN <- county_count %>%
+  filter(BORO_NM == 'BROOKLYN')
+
+vic_count_MANHATTAN <- county_count %>%
+  filter(BORO_NM == 'MANHATTAN')
+
+vic_count_QUEENS <- county_count %>%
+  filter(BORO_NM == 'QUEENS')
+
+vic_count_STATEN_ISLAND <- county_count %>%
+  filter(BORO_NM == 'STATEN ISLAND')
+```
+
+```{r,warning=FALSE}
+  #Creating plot: Bronx
+bronx <- ggplot(data=vic_count_BRONX, aes(x=year, y=Victim_count, fill=VIC_RACE)) +
+    geom_bar(stat="identity", position=position_dodge())+
+  geom_text(aes(label=Victim_count), position = position_dodge(width= 1), vjust= 0.8, hjust = -0.1)+
+  labs(x = "Year", y = "Number of Victims", 
+       title="BRONX", 
+       subtitle = "Results After Omitting Unknown Race Group")+
+   coord_flip() +
+  scale_y_continuous(limits=c(0, 11000))+
+  scale_fill_manual(values=c("#D28C73", "#D79A7B", "#54311E", "#90664E",  "#FFE6DA", "#FAAC86"))+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))+
+  labs(fill="Victim Race")
+
+```
+
+```{r,warning=FALSE}
+  # plot 9 (multiple flipped-bar graph) -- Carol Liu: victim race year trend (Brooklyn)
+
+  #Creating plot: Brookyln
+brooklyn<- ggplot(data=vic_count_BROOKLYN, aes(x=year, y=Victim_count, fill=VIC_RACE)) +
+    geom_bar(stat="identity", position=position_dodge())+
+  geom_text(aes(label=Victim_count), position = position_dodge(width= 1), vjust= 0.8, hjust = -0.1)+
+  labs(x = "Year", y = "Number of Victims", 
+       title="BROOKLYN",
+       subtitle = "Results After Omitting Unknown Race Group")+
+   coord_flip() +
+  scale_y_continuous(limits=c(0, 11000))+
+  theme_gray(base_size = 18)+
+  theme(axis.text=element_text(size=30),
+        axis.title=element_text(size=30),
+        plot.title = element_text(size = 35,face="bold"))+
+  scale_fill_manual(values=c("#D28C73", "#D79A7B", "#54311E", "#90664E", "#FFE6DA", "#FAAC86"))+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))+
+  labs(fill="Victim Race")
+```
+
+```{r,warning=FALSE}
+  # plot 10 (multiple flipped-bar graph) -- Carol Liu: victim race year trend (Manhattan)
+  
+  #Creating plot: Manhattan
+manhattan <- ggplot(data=vic_count_MANHATTAN, aes(x=year, y=Victim_count, fill=VIC_RACE)) +
+    geom_bar(stat="identity", position=position_dodge())+
+  geom_text(aes(label=Victim_count), position = position_dodge(width= 1), vjust= 0.8, hjust = -0.1)+
+  labs(x = "Year", y = "Number of Victims", 
+       title="MANHATTAN",
+       subtitle = "Results After Omitting Unknown Race Group")+
+  scale_y_continuous(limits=c(0, 11000))+
+  coord_flip() +
+  scale_fill_manual(values=c("#D28C73", "#D79A7B", "#54311E", "#90664E",  "#FFE6DA", "#FAAC86"))+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))+
+  labs(fill="Victim Race")
+```
+
+```{r,warning=FALSE}
+  # plot 11 (multiple flipped-bar graph) -- Carol Liu: victim race year trend (Queens)
+
+  #Creating plot: Queens
+queens<- ggplot(data=vic_count_QUEENS, aes(x=year, y=Victim_count, fill=VIC_RACE)) +
+    geom_bar(stat="identity", position=position_dodge())+
+  geom_text(aes(label=Victim_count),position = position_dodge(width= 1), vjust= 0.8, hjust = -0.1)+
+  labs(x = "Year", y = "Number of Victims", 
+       title="QUEENS", 
+       subtitle = "Results After Omitting Unknown Race Group")+
+   coord_flip() +
+  scale_y_continuous(limits=c(0, 11000))+
+  scale_fill_manual(values=c("#D28C73", "#D79A7B", "#54311E", "#90664E", "#FFE6DA", "#FAAC86"))+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))+
+  labs(fill="Victim Race")
+```
+
+```{r,warning=FALSE}
+  # plot 12 (multiple flipped-bar graph) -- Carol Liu: victim race year trend (Staten Island)
+
+  #Creating plot: Staten Island
+staten_island<- ggplot(data=vic_count_STATEN_ISLAND, aes(x=year, y=Victim_count, fill=VIC_RACE)) +
+    geom_bar(stat="identity", position=position_dodge())+
+  geom_text(aes(label=Victim_count),position = position_dodge(width= 1), vjust= 0.8, hjust = -0.1)+
+  labs(x = "Year", y = "Number of Victims", 
+       title="STATEN ISLAND", 
+       subtitle = "Results After Omitting Unknown Race Group")+
+  scale_y_continuous(limits=c(0, 11000))+
+   coord_flip() +
+  scale_fill_manual(values=c("#D28C73", "#D79A7B", "#54311E", "#90664E",  "#FFE6DA", "#FAAC86"))+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))+
+  labs(fill="Victim Race")
+```
+
+
+```{r,warning=FALSE}
+  #plot 9 (interactive pie chart) -- Chen Wang: Victim race for 2009-2018
+
+  #Prepare data for 9th plot
+data_plot_2 <- data_big_crime %>%
+  select(CMPLNT_FR_DT,VIC_RACE)
+data_plot_2[data_plot_2 == ""] <- NA
+data_plot_2 <- data_plot_2 %>%
+  drop_na(VIC_RACE)
+  #Only keep year for each crime case
+data_plot_2$CMPLNT_FR_DT <- format(as.Date(data_plot_2$CMPLNT_FR_DT, format="%m/%d/%Y"),"%Y")
+  #Keep data from 2009 to 2018
+data_plot_2 <- data_plot_2 %>%
+  filter(CMPLNT_FR_DT == c("2009","2010","2011","2012","2013","2014","2015","2016","2017","2018"))
+  #Preparing data for plotting
+data_plot_2 <- data_plot_2 %>%
+  select(VIC_RACE) %>%
+  dplyr::group_by(VIC_RACE) %>%
+  dplyr::summarize(count=n())
+  #Rename columns
+data_plot_2 <- dplyr::rename(data_plot_2, Race = VIC_RACE, Count = count)
+data_plot_2 <- data_plot_2[-c(5), ]
+```
+
+```{r,warning=FALSE}
+  #Creating plot
+plot_2 <- plot_ly(data_plot_2, labels = ~Race, values = ~Count,type = 'pie',
+                  textfont = 10,
+                  marker = list(colors = c("#D28C73", "#D79A7B", "#54311E", "#90664E",  "#FFE6DA", "#FAAC86")))
+  #Layout
+plot_2 <- plot_2 %>% layout(title = '<b>Racial Comparison of Victims for the Past Ten Years (2009-2018)</b>')
+
+```
+
+
+```{r,warning=FALSE}
+  # plot 14 (multiple flipped-bar graph) -- Carol Liu: Victim race by year
+
+bar_race <- ggplot(data=vic_count, aes(x=reorder(year,Victim_count), y=Victim_count, fill=VIC_RACE)) +
+    geom_bar(stat="identity", position=position_dodge())+
+  geom_text(aes(label=Victim_count), position = position_dodge(width= 1), vjust= 0.8, hjust = -0.1)+
+  labs(x = "Year", y = "Number of Victims", 
+       title="Victim's Ethnic group",
+       subtitle = "Results After Omitting Unknown Race Group")+
+  scale_y_continuous(limits=c(0, 25000))+
+   coord_flip() +
+   scale_fill_manual(values=c("#D28C73", "#D79A7B", "#54311E", "#90664E", "#FFE6DA", "#FAAC86"))+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))+
+  labs(fill="Victim Race")
+```
+
+
+```{r,warning=FALSE}
+  # plot 15 (interactive map) -- Chen Wang: Harassment map by gender
+
+  #Prepare data for 3rd plot
+data_plot_3 <- data_big_crime %>%
+  select(CMPLNT_FR_DT,VIC_SEX,OFNS_DESC,Latitude,Longitude) %>%
+  filter(OFNS_DESC == "HARRASSMENT 2") %>%
+  filter(VIC_SEX == c("M","F"))
+  #Only keep year for each crime case
+data_plot_3$CMPLNT_FR_DT <- format(as.Date(data_plot_3$CMPLNT_FR_DT, format="%m/%d/%Y"),"%Y")
+  #Keep data from 2009 to 2018 for Male
+M_data_plot_3 <- data_plot_3 %>%
+  filter(CMPLNT_FR_DT == c("2009","2010","2011","2012","2013","2014","2015","2016","2017","2018"),VIC_SEX == "M")
+  #Keep data from 2009 to 2018 for Female
+F_data_plot_3 <- data_plot_3 %>%
+  filter(CMPLNT_FR_DT == c("2009","2010","2011","2012","2013","2014","2015","2016","2017","2018"),VIC_SEX == "F")
+data_plot_3 <- rbind(M_data_plot_3,F_data_plot_3)
+data_plot_3 <- dplyr::rename(data_plot_3,Year = CMPLNT_FR_DT)
+```
+
+```{r,warning=FALSE}
+   #Creating plot
+plot_3 <- leaflet(data_plot_3) %>%
+  addTiles(group = "Toner") %>%
+   #first layer 
+  addMarkers(group = "Female",
+              data=subset(data_plot_3,data_plot_3$VIC_SEX == "F"),
+             lng = ~Longitude, lat = ~Latitude,clusterOptions = markerClusterOptions()) %>%
+   #second layer 
+    addMarkers(group = "Male",
+              data=subset(data_plot_3,data_plot_3$VIC_SEX == "M"),
+             lng = ~Longitude, lat = ~Latitude,clusterOptions =     markerClusterOptions()) %>%
+   #layer control
+  addLayersControl(
+    overlayGroups = c("Female","Male"),
+    options = layersControlOptions(collapsed = FALSE))
+```
+
+
+
+```{r,warning=FALSE}
+  # plot 16 (static heat map) -- Meilin Yuan: crime densities for 2019 and 2021
+register_google(key = "AIzaSyBLxL28NCpzuPXVbeyjYCHRDbrMji4qNow")
+  #Create map
+map_NYC_2 <- get_map("New York City",
+                            zoom=11,
+                            source = "stamen",
+                            maptype = "toner-lite")
+g_map2 <- ggmap(map_NYC_2)
+
+  #Graph density using heat map: year 2021
+g_1b <- g_map2 + stat_density2d(data = df_current_2021, geom = "polygon",
+  aes(x = Longitude, y = Latitude, fill=..level..,alpha=..level..)) + 
+  scale_fill_gradient(low = "yellow", high = "red")+
+  labs(x="Longitude",y="Latitude", title="Crime Density in NYC",subtitle="Year 2021")+
+  annotate('text',x=-73.98771, y=40.75025, label="Herald Square",color="Brown",fontface=2, size=3)+
+  annotate('text',x=-73.94648, y=40.81155, label="Harlem",color="Brown",fontface=2,size=3)+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))
+
+  #Graph density using heat map: year 2019
+g_2b <- g_map2 + 
+  stat_density2d(data = df_current_old_2019, geom = "polygon",
+  aes(x = Longitude, y = Latitude, fill=..level..,alpha=..level..)) + 
+  scale_fill_gradient(low = "yellow", high = "red")+
+  labs(x="Longitude",y="Latitude",title="Crime Density in NYC",subtitle="Year 2019")+
+  annotate('text',x=-73.98771, y=40.75025, label="Herald Square", color="Brown",fontface=2, size=3)+
+  annotate('text',x=-73.94648, y=40.81155, label="Harlem",color="Brown",fontface=2, size=3)+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))
+
+```
+
+
+```{r,warning=FALSE}
+  # plot 17 (flipped bar graph) -- Meilin Yuan: crime types in nyc 2019
+
+  #Data processing
+# CMPLNT_FR_DT in df_current: date of crime
+df_current_map <-df_current
+df_current_old_map <-df_current_old
+# convert the date of crime to year
+df_current_map <- df_current_map %>% mutate(Year_Occured=substring(CMPLNT_FR_DT,7,10))
+df_current_old_map <- df_current_old_map %>% mutate(Year_Occured=substring(CMPLNT_FR_DT,7,10))
+
+df_current_2021 <- df_current_map %>% filter(Year_Occured=="2021")
+df_current_old_2019 <- df_current_old_map %>% filter(Year_Occured=="2019")
+```
+
+
+```{r}
+  #Data processing
+df_2021_overview <- df_current_2021
+df_2021_overview_crimetype <- df_2021_overview %>% select(OFNS_DESC)
+df_2021_crimetype <- count(df_2021_overview_crimetype,"OFNS_DESC")
+df_2021_crimetype_rank <- df_2021_crimetype[order(df_2021_crimetype$freq, decreasing = TRUE), ][1:20,]
+df_2021_crimetype_rank$OFNS_DESC[2] <-"HARRASSMENT"
+```
+
+```{r}
+  #Data processing
+df_2019_overview <- df_current_old_2019
+df_2019_overview_crimetype <- df_2019_overview %>% select(OFNS_DESC)
+df_2019_crimetype <- count(df_2019_overview_crimetype,"OFNS_DESC")
+df_2019_crimetype_rank <- df_2019_crimetype[order(df_2019_crimetype$freq, decreasing = TRUE), ][1:20,]
+df_2019_crimetype_rank$OFNS_DESC[2] <-"HARRASSMENT"
+```
+
+```{r}
+  #Creating plot
+flipped_bar_2019 <- ggplot(df_2019_crimetype_rank, aes(x=reorder(OFNS_DESC, freq), y=freq)) +
+  geom_bar(stat="identity", color="#ffd166", fill="#ffd166",width=0.5)+
+  coord_flip()+
+  theme_bw()+
+  ylim(0,100000)+
+  labs(x = "Crime Type",
+       y = "Count",
+       title = "NYC Crime Types in 2019",
+       subtitle="20 Most Common Types")+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))
+
+```
+
+
+```{r}
+  # plot 18 (flipped bar graph) -- Meilin Yuan: crime types in nyc 2021
+
+  #Creating plot
+flipped_bar_2021 <- ggplot(df_2021_crimetype_rank, aes(x=reorder(OFNS_DESC, freq), y=freq)) +
+  geom_bar(stat="identity", color="#ffd166", fill="#ffd166",width=0.5)+
+  coord_flip()+
+  theme_bw()+
+  ylim(0,100000)+
+  labs(x = "Crime Type",
+       y = "Count",
+       title = "NYC Crime Types in 2021",
+       subtitle="20 Most Common Types")+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))
+
+```
+
+
+```{r,eval=TRUE, warning=FALSE}
+# plot 19 (bar graph) -- Meilin Yuan: crime time of day 2021
+
+df_2021_overview_time <- df_2021_overview %>% 
+  mutate(Time=as.numeric(substring(CMPLNT_FR_TM,1,2)))
+  #Divide up crime cases time of occurance: 
+  #early morning (00-05), morning(06-11), afternoon (12-17), night (18-23)
+df_2021_earlymorning <- df_2021_overview_time %>% filter(Time>=0 & Time<=5)
+df_2021_morning <- df_2021_overview_time %>% filter(Time>=6 & Time<=11)
+df_2021_afternoon <- df_2021_overview_time %>% filter(Time>=12 & Time<=17)
+df_2021_night <- df_2021_overview_time %>% filter(Time>=18 & Time<=23)
+
+  #create dataframe for bar graph
+TimeofCrime <- c("EarlyMorning","Morning","Afternoon","Night")
+Count <- c(nrow(df_2021_earlymorning),nrow(df_2021_morning),nrow(df_2021_afternoon),nrow(df_2021_night))
+df_crimetime <- data.frame(TimeofCrime, Count)
+```
+
+```{r,warning=FALSE}
+  #create bar graph
+bar_graph <- ggplot(data=df_crimetime, aes(x=TimeofCrime, y=Count, fill=TimeofCrime)) +
+  geom_bar(stat="identity",width=0.5)+ theme_bw() + 
+  geom_text(aes(label=Count), vjust=1.6, color="white",position = position_dodge(2), size=3)+
+  scale_fill_manual(values=c("coral", "black","#82CAFF","dark blue")) + 
+  labs(x = "Time of Day", y = "Crime Count",title = "Crime Time of Day in NYC", subtitle="2021") +
+  scale_x_discrete(limits = c("EarlyMorning", "Morning", "Afternoon","Night"))+
+  theme_minimal()+
+  theme(plot.title = element_text(face = "bold", size = 18))+
+  labs(fill="Time of Day")
+
+```
+## Research Topic
+
+The crime situation deserves attention from the public because it can affect people's safety directly. We are interested in comparing NYC crime statistics from the past and the present to reveal trends and important messages. In this project, we are going to explore as deeply as we can of the changes in the crime situation in NYC (Manhattan, Bronx, Queens, Brooklyn, Staten Island) over the past 10 years and the present. It's an efficient way to reflect the changes in the level of safety in NYC as time goes on. 
+<br>
+<br>
+<br>
+<br>
+
+## Data
+
+Our analyses are based on four datasets downloaded from [NYC Open Data](https://opendata.cityofnewyork.us) and [Kaggle](https://www.kaggle.com). The datasets contain information including crime type, suspects and victims’ race, gender, age group, and detailed coordination of each criminal case in New York State from 1990 to 2021.
+<br>
+<br>
+<br>
+<br>
+
+## Overall Crime Trend in NYC in the Past
+
+According to the information provided by the NYPD, the crime situations in the five boroughs of New York City show significant changes over the past ten years. Therefore, we looked at the overall crime rates and the crime growing rates in the past (before COVID) and present (post-COVID) in NYC, and determined the level of danger for each borough by adjusting its crime rate by its population and area.
+<br>
+<br>
+<br>
+<br>
+```{r,warning=FALSE}
+# plot 1 (interactive line chart) -- Chen Wang: changes in total crime cases from 2009 to 2018
+plot_1
+```
+
+The first plot is the changes in total crime cases from 2009 to 2018, ten years before COVID 19. Obviously, Staten Island has the lowest number of total crime cases, and it keeps lower than 10000 total crime cases in these ten years. However, the trend in Manhattan is not stable, and it even offers an uptrend as time goes by, so we predict Manhattan is the most unsafe borough in New York.
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+```{r,warning=FALSE}
+# plot 2 (Bar Chart)-- Meilin Yuan: Yearly Crime Growth Rate 2009-2021
+bar_10year_change
+```
+
+Based on the hypothesis from the first plot, we made a plot showing the growth change rate. The green color bar means the growth rate this year compared to the previous year is going down, and the red bar represents the growth rate is going up compared to the previous year. Most years show a downtrend compared with last year, especially in 2020. This situation may be caused by people usually staying at home due to the outbreak of COVID, so the crime situation improved automatically. The improvement of COVID in 2021 dramatically increases the growth rate of 2021 proves this argument.
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+```{r,warning=FALSE}
+# plot 3 (Bump Chart) -- Meilin Yuan: Ranking of Most Dangerous Borough in NYC
+bump_plot
+```
+
+The third plot is a bump chart that ranks each county's danger level because we think adjusting the rank by different measurements will make the conclusion more accurate. This plot proves the argument in the first plot. Staten Island is the safest county in the five boroughs of NYC because it always has the lowest rank of danger level regardless of adjustment type. However, Manhattan is the most dangerous borough in NYC from the bump chart because it keeps having the top rank of danger level in multiple measure methods.
+
+In conclusion, Manhattan is the most dangerous and Staten Island is the safest borough in NYC. Also, the outbreak of COVID-19 "solved" the crime situation temporarily.
+<br>
+<br>
+<br>
+<br>
+
+## Different Crime Types in the Five Boroughs in NYC
+
+According to the dataset from Kaggle, there are several types of major crimes in the five boroughs in New York City, such as murder, rape, robbery and aggravated assault. People may be curious to find out which borough has a higher crime rate and which type of crime occurs the most in NYC? To achieve this, we conducted graphs of each type of crime for the five boroughs in NYC from 2009-2018. By doing so, people are able to see clearly the crime situation in ten years in each borough. 
+<br>
+<br>
+<br>
+<br>
+```{r,warning=FALSE}
+# plot 4 (interactive map) -- Carol Liu: Percent of murder(murder/violent total), Rape, Aggravated Assault, happened in each county in year 2018, last year before covid
+plot_before_covid
+```
+
+The fourth plot is a New York City map which shows us percent of violent crimes in each borough in year 2018. Violent crimes include murder, rape, aggravated assault. From the map, we can see that Brooklyn borough has the biggest circle, which means it has the highest number of violent crimes. On the contrary, Staten Island borough has the smallest circle, which means it has the least number of violent crimes. In addition, Brooklyn and Bronx borough have the most number of murder. Therefore, obviously Brooklyn and Bronx are more dangerous than the other three boroughs. 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+```{r,warning=FALSE}
+# plot 5 (multiple-bar chart) -- Zhuohan Wang: Total number of murder by borough(2009-2018)
+p1
+```
+
+After looking at total violent crimes, we made the fifth plot, which is a group bar chart showing us the total number of murders in 5 boroughs in New York City from 2009-2018. Since murder is one of cime that people most concerned about. From these ten years data, we can clearly see that Brooklyn has the most number of murders in every year. Fortunately, the total number of murders in Brooklyn is in a downward trend from 2009-2018. Manhattan and Staten Island have relatively less number of murder cases from 2009-2018. Therefore, they are safer than Brooklyn, Bronx and Queens. 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+```{r,warning=FALSE}
+# plot 6 (multiple-bar chart) -- Zhuohan Wang: Total number of rapes by borough(2009-2018)
+p3
+```
+
+The sixth plot is a group bar chart which shows us the total number of rapes in 5 boroughs in New York City from 2009-2018. The reason why we made this plot is we were shocked by the data. The total number of rapes in the New York City suddenly surged in year 2015. The number of rapes in 2015 has twice as many as in 2014 and it presents a upward trend from 2015-2018. The number of rapes in all five boroughs are increasing every year from 2009-2018. Although Staten Island has the leaset number of rapes, the other four boroughs all have lots of cases of rapes. Therefore, government should definitely pay more attention to the increasing number of rapes in NYC. 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+```{r,warning=FALSE}
+# plot 7 (multiple-bar chart) -- Zhuohan Wang: Total number of Robberies by borough(2009-2018)
+p4
+```
+
+Finally, robbery is also the most common crime, so we made the plot which is a group bar chart showing the total number of robberies in 5 boroughs in New York City from 2009-2018. From the plot we can clearly see that robbery is the most frequent type of crime. Nearly 20,000 robberies occur every year in 5 boroughs in New York City. The good new is the total number of robberies is declining from 2012 to 2018. Brooklyn still has the most number of robberies among all 5 boroughs. The Bronx, Queens and Manhattan have similar amounts of robberies in each year from 2009 to 2018. 
+
+Overall, from these ten years of data, we concluded that Brooklyn and Bronx were relatively more dangerous than Queens, Manhattan and Staten Island. Brooklyn has the highest number of all crime types among 5 boroughs. Therefore, the government should pay more attention to the safety problem in Brooklyn. 
+<br>
+<br>
+<br>
+<br>
+
+## Victim’s Ethnic Group and Harassment Situation by Genders
+
+According to statistics released by the NYPD, the majority of crimes committed in the New York City area are in minority neighborhoods, and they are high! Statistics for shootings, murders, and felonies are over 80% in each category. These crimes are typically committed by minorities towards other minorities. Thus we decided to look into the victim’s ethnicity and how each borough’s situation differs. 
+<br>
+<br>
+<br>
+<br>
+```{r,fig.align="center",fig.width = 10, fig.height = 13}
+# plot 8 (multiple flipped-bar graph) -- Carol Liu: victim race year trend (Bronx)
+bronx
+```
+The bar graph displays the victim's race in the Bronx borough between 2009 and 2018. From this bar graph, we can see that White Hispanics and Black are the top two ethnic groups in victims, far more than any other race. 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+```{r,fig.align="center",fig.width = 10, fig.height = 13}
+# plot 9 (multiple flipped-bar graph) -- Carol Liu: victim race year trend (Brooklyn)
+brooklyn
+```
+The bar graph displays the victim's race in the Brooklyn borough between 2009-2018. From the bar graph, we can see that victims are far more likely to be black than other races. Brooklyn also has the highest number of crimes compared to other boroughs.
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+```{r, fig.align="center",fig.width = 10, fig.height = 13,warning=FALSE}
+# plot 10 (multiple flipped-bar graph) -- Carol Liu: victim race year trend (Manhattan)
+manhattan
+```
+The bar graph displays the victim's race in the Manhattan borough between 2009 and 2018. From the bar graph, we can see that Manhattan is behaving quite differently from Bronx and Brooklyn. In Manhattan, victims are more likely to be white, black, or white Hispanic compared to other races.
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+```{r,fig.align="center",fig.width = 10, fig.height = 13, warning=FALSE}
+# plot 11 (multiple flipped-bar graph) -- Carol Liu: victim race year trend (Queens)
+queens
+```
+The bar graph displays the victim's races in the Queens borough between 2009-2018. From the bar graph, we can see that Queens shares a similar pattern with Manhattan where victims are more likely to be black, white, or white Hispanic. 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+```{r,fig.align="center",fig.width = 10, fig.height = 13, warning=FALSE}
+# plot 12 (multiple flipped-bar graph) -- Carol Liu: victim race year trend (Staten Island)
+staten_island
+```
+The bar graph displays the victim's race in the Staten Island borough between 2009-2018. From the bar graph, we can see that there are a lot fewer crimes in Staten Island than in any other borough. Victims living on Staten Island are more likely to be white than other races.
+
+Overall, we can conclude from Figure 8 that Brooklyn and the Bronx show similar patterns where minorities are the main subject of victimization. Brooklyn also has the highest number of crimes among the 5 boroughs. Manhattan and Queens share similar patterns where the race distribution is more aligned with the race population distribution. Staten Island, being the safest borough of all, has far less crime than any other borough with victim’s race distribution similar to population race distribution, similar to Queens and Manhattan. 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+```{r,warning=FALSE}
+# plot 13 (interactive pie chart) -- Chen Wang: Victim race for 2009-2018
+plot_2
+```
+To look at Victim’s ethnic groups more broadly, we created a pie chart showing the racial comparison of victims for the past 10 year in total (2009-2018). It shows that Black takes up 35.9% of the victim’s population, followed by White at 25.5% and White Hispanics at 24%. This aligned with previous results (victim race by borough bar graphs). 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+```{r, fig.align="center",fig.width = 10, fig.height = 13,warning=FALSE}
+# plot 14 (multiple flipped-bar graph) -- Carol Liu: Victim race by year
+bar_race
+```
+This graph shows a similar output to the previous one but in a time series, so it will be easier to see how the distribution varied in each year. 
+<br>
+<br>
+A video exposing 10 hours of sexual harassment in New York has had nearly 40m hits in 2014. It even has its own Wikipedia page called “10 Hours of Walking in NYC as a Woman.” In the video, Shoshana Roberts, a 24-year-old actor spent a day walking the streets of New York, dressed in jeans and a black T-shirt, while a hidden camera recorded the extraordinary number of catcalls she received, including rape and death threats. Harassment has been a serious issue in New York and thus we want to look into harassment cases by gender and by area. 
+<br>
+<br>
+<br>
+<br>
+```{r,warning=FALSE}
+# plot 15 (interactive map) -- Chen Wang: Harassment map by gender
+plot_3
+```
+The above is a leaflet Harassment map by victim's sex, with the number of harassment that happened in each area. Feel free to zoom in and explore the plot, the right corner allows you to choose the gender displayed on the map. 
+<br>
+<br>
+<br>
+<br>
+
+## Moving into 2021, the Post-Pandemic Year
+
+There are changes in crime frequencies and types during the post-pandemic era in comparison to the pre-pandemic years before the end of 2019. Many people feel that crime rates in NYC have been rising, while theft fraud and fraud-related offenses are noticeably more frequent than before. Therefore, we also analyzed the latest NYC crime statistics in 2021 to see whether or not what people believed actually happened. 
+<br>
+<br>
+<br>
+<br>
+```{r,warning=FALSE}
+# plot 16 (static heat map) -- Meilin Yuan: crime densities for 2019 and 2021
+static_heatmap <- grid.arrange(g_2b, g_1b, nrow = 1)
+```
+
+First, we used heat maps to illustrate the overall crime densities of NYC for 2019 and 2021. For both pre-pandemic (2019) and post-pandemic (2021), two of the most crime-concentrated spots in NYC remain the same: Herald Square and Harlem. What’s different is that compared to 2019, in 2021, crime densities slightly increased in west Queens and lower Manhattan and slightly decreased in Bronx and Brooklyn. In conclusion, there seem to be fewer crimes in 2021 than in 2019. 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+```{r,warning=FALSE}
+# plot 17 & 18 (flipped bar graph) -- Meilin Yuan: crime types in nyc 2019, 2021
+flipped_bar_2019
+flipped_bar_2021
+```
+<br>
+We then looked into whether or not changes in crime types contributed to the decline in crimes. The flipped bar charts show the 20 most common types of crimes (ranked by occurrence) in NYC for 2019 and 2021. For both pre-pandemic (2019) and post-pandemic (2021), the three most common crimes remain the same: “petit larceny”, “harassment”, and “assault-related offenses”. Yet, in 2021, frequencies for all crimes shown on the chart were lower. This agrees with the message from the heat maps that there was a drop in overall crime counts in NYC in 2021 compared to 2019.  There are also noticeable changes in rankings of crimes: compared to 2019, in 2021, “dangerous drugs”, “offenses against public admini”, “dangerous weapons”, “intoxicated & impaired driving”, and “criminal trespass” went down in rank, while “robbery”, “burglary”, “vehicle and traffic laws”, “grand larceny of motor vehicle”, “theft-fraud”, and “offenses involving fraud” went up in rank. 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+```{r,warning=FALSE}
+# plot 19 (bar graph) -- Meilin Yuan: crime time of day 2021
+bar_graph
+```
+
+Given the changes in crime types, we would like to use our analysis from the latest data to update people on times of day with the highest crime rates in NYC. The bar graph is an overview of NYC’s crime frequencies at different times of day in 2021, where parts of the day are defined as follows: early morning: 00:00-5:59, morning: 6:00-11:59, afternoon: 12:00-17:59, night: 18:00-23:59. Contrary to the popular belief that most crimes take place at night, most crimes took place in the afternoon in NYC in 2021. 
+
+In conclusion, contrary to people’s belief that crime rates in NYC are higher post-pandemic than pre-pandemic, according to our data, the overall crime rates in 2021 were lower than that in 2019. However, in terms of changes in crime types in NYC, people’s feelings are right: theft and fraud-related offenses were indeed more frequent in 2021.
+<br>
+<br>
+<br>
+<br>
+
+## Conclusion
+
+We can draw various conclusions from our analyses for this project. 
+
+First, Manhattan is the most dangerous borough and Staten Island is the safest borough in New York City from multiple perspectives, including but not limited to the trend of the number of crimes cases, crime density, and danger level adjusted by different measures. Police departments should increase security patrols in Manhattan in the future.
+
+Second, the outbreak of COVID-19 and the subsequent lockdowns reduced crime in New York City significantly; However, the decreasing impact of COVID-19 has been worsening the crime situation in NYC again. Police departments should increase security patrols in areas with higher populations. 
+
+Third, females' risk of being victimized by crime is much higher than males in New York City, so females’ safety remains a serious issue. 
+
+Overall, the crime situation in New York City deserves great attention from both police departments and the public if it doesn’t get improved efficiently as time goes on.
+
+
+For all the code, data used, process book, and related materials please visit our [repository](https://github.com/cw3359/cw3359.github.io) for more information.  
+
+
